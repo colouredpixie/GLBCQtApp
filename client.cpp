@@ -7,7 +7,15 @@ client::client(QWidget *parent)
 {
     ui->setupUi(this);
 
-    network* networkServer = new network();
+    newConnection = new connection();
+
+    if (newConnection->initServer())
+        ui->textBrowser->QTextBrowser::setText("Connection created");
+    else
+        ui->textBrowser->QTextBrowser::setText("Connection not created");
+
+
+    /*
     networkServer->tcpServer = new QTcpServer();
 
     if(networkServer->tcpServer->listen(QHostAddress::AnyIPv4, networkServer->port)) {
@@ -20,6 +28,47 @@ client::client(QWidget *parent)
     //connect(networkServer->tcpSocket->nextPendingConnection(), &QTcpSocket::readyRead, this, &networkServer->readSocket());
     //connect(networkServer->tcpSocket->nextPendingConnection(), &QTcpSocket::disconnected, this, &networkServer->releaseSocket());
 
+    int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (fileSocket < 0) { networkServer->errorReport("Socket not created"); }
+
+    // bind the server's local address in memory
+    struct sockaddr_in sockAddr { 0 };
+    //std::memset(&sockAddr, 0, sizeof(sockAddr));
+    sockAddr.sin_family = AF_INET;
+    sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    sockAddr.sin_port = htons(portNumber);
+
+    if (bind(fileSocket, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) < 0) { networkServer->errorReport("Couldn't bind server's address"); }
+
+    if (listen(fileSocket, maxConnects) < 0) { networkServer->errorReport("Listening error"); }
+    fprintf(stderr, "Listening on port %i for clients...\n", portNumber);
+
+    while (!recievedFile) {
+        struct sockaddr_in clientAddr;
+        socklen_t len = sizeof(clientAddr);
+
+        int clientFileSocket = accept(fileSocket, (struct sockaddr*)&clientAddr, &len);
+        if (clientFileSocket < 0) {
+            perror("Connections error");
+            continue;
+        }
+
+        std::cout << "Receiving file list..." << std::endl;
+        receiveFileList(clientFileSocket);
+
+        std::cout << "Sending file request" << std::endl;
+        char fileName[conversationLen];
+        sendFileName(clientFileSocket, fileName);
+
+        std::cout << "Waiting on remote file..." << std::endl;
+        receiveFile(clientFileSocket, fileName);
+
+        recievedFile = true;
+
+        puts("Server done, shutting down...");
+        ::close(clientFileSocket);
+    }
+*/
 }
 
 client::~client()
@@ -27,40 +76,26 @@ client::~client()
     delete ui;
 }
 
-
-/*
- * #include "client.h"
-
-
-int main()
+void client::on_QuitButton_clicked()
 {
-    int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (fileSocket < 0) { errorReport("Socket not created"); }
+    this->close();
+}
 
-    struct hostent* hostPtr = gethostbyname(hostName);
-    if (!hostPtr) { errorReport("Host not found"); }
-    if (hostPtr->h_addrtype != AF_INET) { errorReport("Bad address family"); }
 
-    struct sockaddr_in sockAddr { 0 };
-    //std::memset(&sockAddr, 0, sizeof(sockAddr));
-    sockAddr.sin_family = AF_INET;
-    sockAddr.sin_addr.s_addr = ((struct in_addr*)hostPtr->h_addr_list[0])->s_addr;
-    sockAddr.sin_port = htons(portNumber);
+void client::on_GetListButton_clicked()
+{
+    ui->textBrowser->QTextBrowser::setText("Recieving file");
+}
 
-    if (connect(fileSocket, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) < 0) { errorReport("Couldn't connect to the socket"); }
 
-    std::cout << "Sending file list" << std::endl;
-    std::vector<std::string> files = getFiles();
-    sendFileList(fileSocket, files);
+void client::on_SelectButton_clicked()
+{
+    ui->textBrowser->QTextBrowser::setText("Select input folder");
+}
 
-    std::cout << "Waiting on file request..." << std::endl;
-    std::string fileName = receiveFileName(fileSocket);
 
-    std::cout << "Sending file" << std::endl;
-    sendFile(fileSocket, files, fileName);
+void client::on_GetButton_clicked()
+{
+    ui->textBrowser->QTextBrowser::setText("Choose file to download");
+}
 
-    puts("Client done, shutting down...");
-    close(fileSocket);
-
-    return 0;
-}*/
