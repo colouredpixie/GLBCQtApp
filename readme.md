@@ -11,6 +11,20 @@ Client/Server application to load files from remote HOST.
     the client should have the screen divided by two. Left side is a filesystem of the client, the right side is a filesystem of the server.
     the file that was chosen by a user should be uploaded to the folder which is opened on the client.
 
+Qt qml Macros + added info
+11 standard +14 +17 
+Test for different size type files
+
+O lo la ignore 
+Includes only where needed
+Extern
+Const std string & not string
+Socket dgram
+Serialize deserialize 
+Avoid buffers in strings :)
+Fstream
+Filesystem iterator exceptions
+Use available func - vector find or FS find 
 
 
 # First Level Heading
