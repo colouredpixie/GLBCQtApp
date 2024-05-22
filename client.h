@@ -46,13 +46,9 @@ private:
 
     QTcpServer *tcpServer = nullptr;
     QTcpSocket *tcpSocket = nullptr;
-    int fileSocket;
     QString ipAddress;
 
-    QString hostName; // = "localhost";
-    const int maxConnects = 4;
-    const int conversationLen = 100; // should be based on message len
-    const int buffSize = 4096;
+    QString hostName;
     int portNumber = 7500;
     int recievingPortNumber = 7505;
 
@@ -94,6 +90,8 @@ private:
         QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
         socket->deleteLater();
     }
+
+    void displayError(QAbstractSocket::SocketError socketError);
 };
 
 /*

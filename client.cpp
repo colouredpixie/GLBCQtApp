@@ -1,80 +1,26 @@
 #include "client.h"
 #include "./ui_client.h"
+#include <QtWidgets>
 
 client::client(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::client)
+    , tcpServer(new QTcpServer(this))
+    , tcpSocket(new QTcpSocket(this))
 {
     ui->setupUi(this);
-
-    hostName = QHostInfo::localHostName();
-
-    tcpServer = new QTcpServer();
-    tcpSocket = new QTcpSocket();
-    //tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber);
 
     in.setDevice(tcpSocket);
     in.setVersion(QDataStream::Qt_6_5);
 
-    connect(tcpSocket, &QIODevice::readyRead, this, &client::readFileList);
+    connect(tcpSocket, &QIODevice::readyRead, this, &client::newConnectionSlot);
+    //connect(tcpSocket, &QAbstractSocket::errorOccurred, this, &client::displayError);
 
-        /*
-    if (initServer(QHostAddress::AnyIPv4, portNumber))
-    {
-        ui->textBrowser->QTextBrowser::setText("Connection created");
-        ui->statusbar->showMessage("TCP CLient started");
-        connect(tcpServer, &QTcpServer::newConnection, this, &client::newConnectionSlot);
-    }
-    else
-       ui->textBrowser->QTextBrowser::setText("Connection not created");
+    hostName = QHostInfo::localHostName();
 
-    connect(tcpServer->nextPendingConnection(), &QTcpSocket::readyRead, this, &client::readSocket);
-    connect(tcpServer->nextPendingConnection(), &QTcpSocket::disconnected, this, &client::close);
-*/
+    tcpSocket->connectToHost("127.0.0.1", portNumber);
 
 
-/*
-    int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (fileSocket < 0) { networkServer->errorReport("Socket not created"); }
-
-    // bind the server's local address in memory
-    struct sockaddr_in sockAddr { 0 };
-    //std::memset(&sockAddr, 0, sizeof(sockAddr));
-    sockAddr.sin_family = AF_INET;
-    sockAddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    sockAddr.sin_port = htons(portNumber);
-
-    if (bind(fileSocket, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) < 0) { networkServer->errorReport("Couldn't bind server's address"); }
-
-    if (listen(fileSocket, maxConnects) < 0) { networkServer->errorReport("Listening error"); }
-    fprintf(stderr, "Listening on port %i for clients...\n", portNumber);
-
-    while (!recievedFile) {
-        struct sockaddr_in clientAddr;
-        socklen_t len = sizeof(clientAddr);
-
-        int clientFileSocket = accept(fileSocket, (struct sockaddr*)&clientAddr, &len);
-        if (clientFileSocket < 0) {
-            perror("Connections error");
-            continue;
-        }
-
-        std::cout << "Receiving file list..." << std::endl;
-        receiveFileList(clientFileSocket);
-
-        std::cout << "Sending file request" << std::endl;
-        char fileName[conversationLen];
-        sendFileName(clientFileSocket, fileName);
-
-        std::cout << "Waiting on remote file..." << std::endl;
-        receiveFile(clientFileSocket, fileName);
-
-        recievedFile = true;
-
-        puts("Server done, shutting down...");
-        ::close(clientFileSocket);
-    }
-*/
 }
 
 client::~client()
@@ -106,7 +52,7 @@ void client::on_GetButton_clicked()
 }
 
 void client::newConnectionSlot() {
-    ui->textBrowser->QTextBrowser::setText("new Connection Slot");
+    ui->textBrowser->QTextBrowser::setText("new Connection Slot open!");
 }
 
 void client::readFileList(){
@@ -118,5 +64,28 @@ void client::readFileList(){
     if (!in.commitTransaction())
         return;
 
-    ui->textBrowser->QTextBrowser::setText(incomingText);
+    ui->InTextBrowser->QTextBrowser::setText(incomingText);
+}
+
+void client::displayError(QAbstractSocket::SocketError socketError) {
+    switch (socketError) {
+    case QAbstractSocket::RemoteHostClosedError:
+        break;
+    case QAbstractSocket::HostNotFoundError:
+        QMessageBox::information(this, tr("Fortune Client"),
+                                 tr("The host was not found. Please check the "
+                                    "host name and port settings."));
+        break;
+    case QAbstractSocket::ConnectionRefusedError:
+        QMessageBox::information(this, tr("Fortune Client"),
+                                 tr("The connection was refused by the peer. "
+                                    "Make sure the fortune server is running, "
+                                    "and check that the host name and port "
+                                    "settings are correct."));
+        break;
+    default:
+        QMessageBox::information(this, tr("Fortune Client"),
+                                 tr("The following error occurred: %1.")
+                                     .arg(tcpSocket->errorString()));
+    }
 }
