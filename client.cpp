@@ -7,27 +7,20 @@ client::client(QWidget *parent)
 {
     ui->setupUi(this);
 
-    newConnection = new connection();
+    portNumber = 7500;
 
-    if (newConnection->initServer())
+    if (initServer(QHostAddress::AnyIPv4, portNumber))
+    {
         ui->textBrowser->QTextBrowser::setText("Connection created");
-    else
-        ui->textBrowser->QTextBrowser::setText("Connection not created");
-
-
-    /*
-    networkServer->tcpServer = new QTcpServer();
-
-    if(networkServer->tcpServer->listen(QHostAddress::AnyIPv4, networkServer->port)) {
-        connect(networkServer->tcpServer, &QTcpServer::newConnection, this, &networkServer->newConnection());
         ui->statusbar->showMessage("TCP CLient started");
-    } else {
-        //QMessageBox::information(this, "TCP Server error", networkServer->tcpServer->errorString());
+        connect(tcpServer, &QTcpServer::newConnection, this, &client::newConnectionSlot);
     }
+    else
+       ui->textBrowser->QTextBrowser::setText("Connection not created");
 
-    //connect(networkServer->tcpSocket->nextPendingConnection(), &QTcpSocket::readyRead, this, &networkServer->readSocket());
-    //connect(networkServer->tcpSocket->nextPendingConnection(), &QTcpSocket::disconnected, this, &networkServer->releaseSocket());
-
+    connect(tcpServer->nextPendingConnection(), &QTcpSocket::readyRead, this, &client::readSocket);
+    connect(tcpServer->nextPendingConnection(), &QTcpSocket::disconnected, this, &client::close);
+/*
     int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (fileSocket < 0) { networkServer->errorReport("Socket not created"); }
 
@@ -78,7 +71,7 @@ client::~client()
 
 void client::on_QuitButton_clicked()
 {
-    this->close();
+    QCoreApplication::quit();
 }
 
 
@@ -99,3 +92,6 @@ void client::on_GetButton_clicked()
     ui->textBrowser->QTextBrowser::setText("Choose file to download");
 }
 
+void client::newConnectionSlot() {
+    ui->textBrowser->QTextBrowser::setText("new Connection Slot");
+}
