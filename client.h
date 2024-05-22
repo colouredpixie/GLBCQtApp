@@ -21,14 +21,13 @@ public:
     client(QWidget *parent = nullptr);
     ~client();
 
-    bool initServer(QHostAddress host, int port);
-
 private slots:
     void on_QuitButton_clicked();
-
     void on_SelectButton_clicked();
-
     void on_GetButton_clicked();
+
+    // get files list from server on connection
+    void readFileList();
 
 private:
     Ui::client *ui;
@@ -36,22 +35,16 @@ private:
     QTcpServer *tcpServer = nullptr;
     QTcpSocket *tcpSocket = nullptr;
     QString ipAddress;
-
-    QString hostName;
     int portNumber = 7500;
-    int recievingPortNumber = 7505;
 
     QDataStream in;
     QStringList files;
 
+    // get files list from server extended functionality
     QByteArray readSocket();
-
-    void readFileList();
 
     // close connection
     void close();
-
-    void displayError(QAbstractSocket::SocketError socketError);
 };
 
 #endif // CLIENT_H
