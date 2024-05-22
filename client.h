@@ -49,12 +49,14 @@ private:
     int fileSocket;
     QString ipAddress;
 
-    const char* hostName = "localhost"; // const std::string ?
+    QString hostName; // = "localhost";
     const int maxConnects = 4;
     const int conversationLen = 100; // should be based on message len
     const int buffSize = 4096;
-    int portNumber; // = 7500;
-    int recievingPortNumber; // = 7505;
+    int portNumber = 7500;
+    int recievingPortNumber = 7505;
+
+    QDataStream in;
 
     void readSocket() {
         QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
@@ -85,6 +87,8 @@ private:
         }
     }
 
+    void readFileList();
+
     // close connection
     void close() {
         QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
@@ -93,11 +97,13 @@ private:
 };
 
 /*
+#include <unistd.h>
+#include <netdb.h>
+
 #include <filesystem>
 #include <vector>
 #include <cstring>
 #include <iostream>
-
 
 namespace fs = std::filesystem;
 
@@ -105,13 +111,31 @@ class client : public QMainWindow
 {
 
 public:
-    // connect to server
 
-    void newConnection();
+    bool createSocket() {
+        int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
+        if (fileSocket < 0) {
+errorReport("Socket not created");
+return false;}
+
+        struct hostent* hostPtr = gethostbyname(hostName);
+        if (!hostPtr) { errorReport("Host not found"); }
+        if (hostPtr->h_addrtype != AF_INET) {
+errorReport("Bad address family");
+return false;}
+
+        struct sockaddr_in sockAddr { 0 };
+        //std::memset(&sockAddr, 0, sizeof(sockAddr));
+        sockAddr.sin_family = AF_INET;
+        sockAddr.sin_addr.s_addr = ((struct in_addr*)hostPtr->h_addr_list[0])->s_addr;
+        sockAddr.sin_port = htons(portNumber);
+return true;
+    }
+
     // request to load one file from the list via a specific port. Ex port (7505)
 
     // recieve file list from client
-    void receiveFileList(int fileSocket) {
+    void receiveFileList(int fileSocket, std::string neededFile = "file.txt") {
         std::cout << "Files on remote host: " << std::endl;
         for (int i = 0; i < conversationLen; i++) {
             char buffer[buffSize + 1];
@@ -147,47 +171,11 @@ public:
 
     bool recievedFile = false;
 
-
     // opportunity to choose where a file will be saved
     // the client UI should have the ability to navigate through file system
     // the client should have the screen divided by two. Left side is a filesystem of the client, the right side is a filesystem of the server.
     // the file that was chosen by a user should be uploaded to the folder which is opened on the client.
-
 };
-*/
-
-/*
-    bool createSocket() {
-        int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
-        if (fileSocket < 0) {
-errorReport("Socket not created");
-return false;}
-
-        struct hostent* hostPtr = gethostbyname(hostName);
-        if (!hostPtr) { errorReport("Host not found"); }
-        if (hostPtr->h_addrtype != AF_INET) {
-errorReport("Bad address family");
-return false;}
-
-        struct sockaddr_in sockAddr { 0 };
-        //std::memset(&sockAddr, 0, sizeof(sockAddr));
-        sockAddr.sin_family = AF_INET;
-        sockAddr.sin_addr.s_addr = ((struct in_addr*)hostPtr->h_addr_list[0])->s_addr;
-        sockAddr.sin_port = htons(portNumber);
-return true;
-    }
-*/
-
-/*
-#include "./include/QtNetwork/QTcpSocket"
-#include <unistd.h>
-#include <netdb.h>
-
-class network {
-public:
-
-
-void receiveFile(int fileSocket, std::string neededFile = "file.txt");
 
 struct msg {
     int length;

@@ -7,8 +7,18 @@ client::client(QWidget *parent)
 {
     ui->setupUi(this);
 
-    portNumber = 7500;
+    hostName = QHostInfo::localHostName();
 
+    tcpServer = new QTcpServer();
+    tcpSocket = new QTcpSocket();
+    //tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber);
+
+    in.setDevice(tcpSocket);
+    in.setVersion(QDataStream::Qt_6_5);
+
+    connect(tcpSocket, &QIODevice::readyRead, this, &client::readFileList);
+
+        /*
     if (initServer(QHostAddress::AnyIPv4, portNumber))
     {
         ui->textBrowser->QTextBrowser::setText("Connection created");
@@ -20,6 +30,9 @@ client::client(QWidget *parent)
 
     connect(tcpServer->nextPendingConnection(), &QTcpSocket::readyRead, this, &client::readSocket);
     connect(tcpServer->nextPendingConnection(), &QTcpSocket::disconnected, this, &client::close);
+*/
+
+
 /*
     int fileSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (fileSocket < 0) { networkServer->errorReport("Socket not created"); }
@@ -94,4 +107,16 @@ void client::on_GetButton_clicked()
 
 void client::newConnectionSlot() {
     ui->textBrowser->QTextBrowser::setText("new Connection Slot");
+}
+
+void client::readFileList(){
+    in.startTransaction();
+
+    QString incomingText;
+    in >> incomingText;
+
+    if (!in.commitTransaction())
+        return;
+
+    ui->textBrowser->QTextBrowser::setText(incomingText);
 }
