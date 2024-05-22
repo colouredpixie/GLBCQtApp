@@ -1,14 +1,16 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include "network.h"
 #include <QMainWindow>
-#include <QDataStream>
+#include "./QtNetwork/QtNetwork"
+#include "./QtNetwork/QTcpServer"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class client;
 }
+class QTcpServer;
+class QTcpSocket;
 QT_END_NAMESPACE
 
 class client : public QMainWindow
@@ -17,17 +19,39 @@ class client : public QMainWindow
 
 public:
     client(QWidget *parent = nullptr);
-
-    // connect to server
-    // request to load one file from the list via a specific port. Ex port (7505)
-    // opportunity to choose where a file will be saved
-    // the client UI should have the ability to navigate through file system
-    // the client should have the screen divided by two. Left side is a filesystem of the client, the right side is a filesystem of the server.
-    // the file that was chosen by a user should be uploaded to the folder which is opened on the client.
-
     ~client();
+
+    bool initServer(QHostAddress host, int port);
+
+private slots:
+    void on_QuitButton_clicked();
+
+    void on_SelectButton_clicked();
+
+    void on_GetButton_clicked();
 
 private:
     Ui::client *ui;
+
+    QTcpServer *tcpServer = nullptr;
+    QTcpSocket *tcpSocket = nullptr;
+    QString ipAddress;
+
+    QString hostName;
+    int portNumber = 7500;
+    int recievingPortNumber = 7505;
+
+    QDataStream in;
+    QStringList files;
+
+    QByteArray readSocket();
+
+    void readFileList();
+
+    // close connection
+    void close();
+
+    void displayError(QAbstractSocket::SocketError socketError);
 };
+
 #endif // CLIENT_H
