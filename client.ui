@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="QuitButton">
     <property name="geometry">
      <rect>
-      <x>649</x>
-      <y>520</y>
-      <width>161</width>
-      <height>31</height>
+      <x>509</x>
+      <y>510</y>
+      <width>311</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -30,10 +30,10 @@
    <widget class="QPushButton" name="SelectButton">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>520</y>
-      <width>321</width>
-      <height>31</height>
+      <x>510</x>
+      <y>30</y>
+      <width>311</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -43,10 +43,10 @@
    <widget class="QPushButton" name="GetButton">
     <property name="geometry">
      <rect>
-      <x>359</x>
-      <y>520</y>
-      <width>281</width>
-      <height>31</height>
+      <x>510</x>
+      <y>110</y>
+      <width>311</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -56,10 +56,10 @@
    <widget class="QTextBrowser" name="textBrowser">
     <property name="geometry">
      <rect>
-      <x>25</x>
-      <y>31</y>
-      <width>371</width>
-      <height>451</height>
+      <x>30</x>
+      <y>30</y>
+      <width>451</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="html">
@@ -70,17 +70,25 @@ hr { height: 1px; border-width: 0; }
 li.unchecked::marker { content: &quot;\2610&quot;; }
 li.checked::marker { content: &quot;\2612&quot;; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Local text&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Current working directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
    <widget class="QListWidget" name="listWidget">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>30</y>
-      <width>371</width>
-      <height>451</height>
+      <x>30</x>
+      <y>110</y>
+      <width>451</width>
+      <height>441</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>16</pointsize>
+     </font>
+    </property>
+    <property name="isWrapping" stdset="0">
+     <bool>false</bool>
     </property>
    </widget>
   </widget>

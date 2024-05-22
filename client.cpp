@@ -16,8 +16,6 @@ client::client(QWidget *parent)
 
     connect(tcpSocket, &QIODevice::readyRead, this, &client::readFileList);
 
-    hostName = QHostInfo::localHostName();
-
     tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber);
 }
 
@@ -34,8 +32,6 @@ void client::readFileList(){
         file.removeLast();
         ui->listWidget->addItem(file);
     }
-
-
 }
 
 QByteArray client::readSocket() {
@@ -56,18 +52,7 @@ QByteArray client::readSocket() {
     dataBuffer = socket->readAll();
     for (int i = 0; i < size; i++) {
         files.append(dataBuffer.split(':')[i+1]);
-        //socketStream >> dataBuffer;
     }
-
-
-    /*
-    QString saveFilePath = QCoreApplication::applicationDirPath() + "/" + fileName;
-    QFile file(saveFilePath);
-    if(file.open(QIODevice::WriteOnly)) {
-        file.write(dataBuffer);
-        file.close();
-    }
-    */
 
     if (socketStream.commitTransaction() == false) {
         return 0;
@@ -75,16 +60,6 @@ QByteArray client::readSocket() {
 
     return dataBuffer;
 }
-
-bool client::initServer(QHostAddress host, int port) {
-    tcpServer = new QTcpServer();
-    if (!tcpServer->listen(host, port))
-        return false;
-
-    ipAddress = QHostAddress(QHostAddress::LocalHost).toString();
-    return true;
-}
-
 
 void client::close() {
     QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
@@ -98,11 +73,20 @@ void client::on_QuitButton_clicked()
 
 void client::on_SelectButton_clicked()
 {
-    ui->textBrowser->QTextBrowser::setText("Select input folder");
+    QString filePath = QFileDialog::getExistingDirectory(this, "Select folder to save file to", QCoreApplication::applicationDirPath());
+    ui->textBrowser->QTextBrowser::setText(filePath);
 }
-
 
 void client::on_GetButton_clicked()
 {
     ui->textBrowser->QTextBrowser::setText("Choose file to download");
+
+    /*
+    QString saveFilePath = QCoreApplication::applicationDirPath() + "/" + fileName;
+    QFile file(saveFilePath);
+    if(file.open(QIODevice::WriteOnly)) {
+        file.write(dataBuffer);
+        file.close();
+    }
+    */
 }
