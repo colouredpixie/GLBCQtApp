@@ -14,7 +14,7 @@ client::client(QWidget *parent)
     in.setDevice(tcpSocket);
     in.setVersion(QDataStream::Qt_6_5);
 
-    connect(tcpSocket, &QIODevice::readyRead, this, &client::readFileList);
+    connect(tcpSocket, &QIODevice::readyRead, this, &client::readSocket);
 
     tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber);
 }
@@ -24,22 +24,16 @@ client::~client()
     delete ui;
 }
 
-void client::readFileList(){
-    readSocket();
-
-    for (QString file : files) {
-        file.removeFirst();
-        file.removeLast();
-        ui->listWidget->addItem(file);
-    }
+void client::readSocket(){
+    receiveFileList();
 }
 
-QByteArray client::readSocket() {
+QByteArray client::receiveFileList() {
     QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
 
     QByteArray dataBuffer;
     QDataStream socketStream(socket);
-    socketStream.setVersion(QDataStream::Qt_5_15);
+    socketStream.setVersion(QDataStream::Qt_6_6);
 
     QByteArray byteSize;
     int size;
@@ -58,7 +52,33 @@ QByteArray client::readSocket() {
         return 0;
     }
 
+    for (QString file : files) {
+        file.removeFirst();
+        file.removeLast();
+        ui->listWidget->addItem(file);
+    }
+
     return dataBuffer;
+}
+
+void sendFileRequest() {
+
+}
+
+
+QByteArray client::receiveFile() {
+    QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
+
+    QByteArray dataBuffer;
+    QDataStream socketStream(socket);
+    socketStream.setVersion(QDataStream::Qt_6_6);
+
+    QString header = dataBuffer.mid(0, 128);
+    QString fileName = header.split(",")[0].split(":")[1];
+    QString fileExt = fileName.split(".")[1];
+    QString fileSize = header.split(",")[1].split(":")[1];
+
+    dataBuffer = dataBuffer.mid(128);
 }
 
 void client::close() {
@@ -79,7 +99,8 @@ void client::on_SelectButton_clicked()
 
 void client::on_GetButton_clicked()
 {
-    ui->textBrowser->QTextBrowser::setText("Choose file to download");
+    ui->textBrowser->QTextBrowser::setText("Selected file to download:");
+    ui->textBrowser->QTextBrowser::append(ui->listWidget->selectedItems().first()->text());
 
     /*
     QString saveFilePath = QCoreApplication::applicationDirPath() + "/" + fileName;

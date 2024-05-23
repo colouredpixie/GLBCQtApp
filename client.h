@@ -26,8 +26,8 @@ private slots:
     void on_SelectButton_clicked();
     void on_GetButton_clicked();
 
-    // get files list from server on connection
-    void readFileList();
+    // get data stream from server on connection
+    void readSocket();
 
 private:
     Ui::client *ui;
@@ -41,7 +41,9 @@ private:
     QStringList files;
 
     // get files list from server extended functionality
-    QByteArray readSocket();
+    QByteArray receiveFileList();
+    void sendFileRequest();
+    QByteArray receiveFile();
 
     // close connection
     void close();
