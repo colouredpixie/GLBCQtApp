@@ -42,7 +42,7 @@ private:
 
     // get files list from server extended functionality
     QByteArray receiveFileList();
-    void sendFileRequest();
+    void sendFileRequest(QString filename);
     QByteArray receiveFile();
 
     // close connection

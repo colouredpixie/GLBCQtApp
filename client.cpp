@@ -25,7 +25,10 @@ client::~client()
 }
 
 void client::readSocket(){
-    receiveFileList();
+    if(files.isEmpty())
+        receiveFileList();
+    else
+        receiveFile();
 }
 
 QByteArray client::receiveFileList() {
@@ -61,12 +64,36 @@ QByteArray client::receiveFileList() {
     return dataBuffer;
 }
 
-void sendFileRequest() {
+void client::sendFileRequest(QString filename) {
+    tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber); //TODO: was it deleted somewhere previously?
 
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_6_6);
+    out << filename;
+
+    tcpSocket = tcpServer->nextPendingConnection();
+    connect(tcpSocket, &QAbstractSocket::disconnected, tcpSocket, &QObject::deleteLater);
+    // gets error: qt.core.qobject.connect: QObject::connect(QAbstractSocket, Unknown): invalid nullptr parameter
+
+
+    tcpSocket->write(block);
+    tcpSocket->flush();
+    tcpSocket->disconnectFromHost();
 }
 
 
 QByteArray client::receiveFile() {
+    /*
+    QString saveFilePath = QCoreApplication::applicationDirPath() + "/" + fileName;
+    QFile file(saveFilePath);
+    if(file.open(QIODevice::WriteOnly)) {
+        file.write(dataBuffer);
+        file.close();
+    }
+    */
+
+    /*
     QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
 
     QByteArray dataBuffer;
@@ -79,6 +106,7 @@ QByteArray client::receiveFile() {
     QString fileSize = header.split(",")[1].split(":")[1];
 
     dataBuffer = dataBuffer.mid(128);
+*/
 }
 
 void client::close() {
@@ -99,15 +127,15 @@ void client::on_SelectButton_clicked()
 
 void client::on_GetButton_clicked()
 {
-    ui->textBrowser->QTextBrowser::setText("Selected file to download:");
-    ui->textBrowser->QTextBrowser::append(ui->listWidget->selectedItems().first()->text());
-
-    /*
-    QString saveFilePath = QCoreApplication::applicationDirPath() + "/" + fileName;
-    QFile file(saveFilePath);
-    if(file.open(QIODevice::WriteOnly)) {
-        file.write(dataBuffer);
-        file.close();
+    QString fileName;
+    if (!ui->listWidget->selectedItems().isEmpty())
+    {
+        fileName = ui->listWidget->selectedItems().first()->text();
+        ui->textBrowser->QTextBrowser::setText("Selected file: " + fileName);
+        sendFileRequest(fileName);
     }
-    */
+    else
+    {
+        ui->textBrowser->QTextBrowser::setText("Select a file to download");
+    }
 }
