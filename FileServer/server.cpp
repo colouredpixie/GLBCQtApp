@@ -12,7 +12,7 @@ server::server(QWidget *parent)
 
     connect(tcpServer, &QTcpServer::newConnection, this, &server::sendFileList);
     connect(tcpSocket, &QIODevice::readyRead, this, &server::newConnection);
-
+    connect(tcpSocket, &QAbstractSocket::stateChanged, this, &server::stateUpdate);
 
     if(!tcpServer->listen(QHostAddress::Any, portNumber)) {
         ui->textBrowser->QTextBrowser::setText("Couldn't start server. \nPlease, check if network port is available");
@@ -106,6 +106,40 @@ void server::newConnection()
     ui->textBrowser->QTextBrowser::setText("Received a datagramme from client");
 }
 
+void server::stateUpdate(){
+    QString temp;
+    switch(tcpSocket->state()) {
+        case QAbstractSocket::SocketState::UnconnectedState: {
+        temp = 	"The socket is not connected.";
+        break;
+        }
+        case QAbstractSocket::HostLookupState: {
+        temp = 	"The socket is performing a host name lookup.";
+        break;
+        }
+        case QAbstractSocket::ConnectingState: {
+        temp = 	"The socket has started establishing a connection.";
+        break;
+        }
+        case QAbstractSocket::ConnectedState: {
+        temp = 	"A connection is established.";
+        break;
+        }
+        case QAbstractSocket::BoundState: {
+        temp = 	"The socket is bound to an address and port.";
+        break;
+        }
+        case QAbstractSocket::ClosingState: {
+        temp = 	"The socket is about to close (data may still be waiting to be written).";
+        break;
+        }
+        default: {
+        temp = 	"For internal use only.";
+        break;
+        }
+    }
+    ui->textBrowser->QTextBrowser::append(temp);
+}
 void server::close() {
     QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
     socket->deleteLater();
@@ -114,6 +148,8 @@ void server::close() {
 void server::on_sendFileButton_clicked()
 {
     ui->textBrowser->QTextBrowser::setText("Sending file to client");
+    tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber);
+
 }
 
 void server::on_QuitButton_clicked()

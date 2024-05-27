@@ -65,21 +65,20 @@ QByteArray client::receiveFileList() {
 }
 
 void client::sendFileRequest(QString filename) {
-    tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber); //TODO: was it deleted somewhere previously?
+    QTcpSocket * sendSocket = new QTcpSocket(); //tcpSocket
+    //sendSocket->connectToHost(QHostAddress::LocalHost, portNumber);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_6_6);
     out << filename;
 
-    tcpSocket = tcpServer->nextPendingConnection();
-    connect(tcpSocket, &QAbstractSocket::disconnected, tcpSocket, &QObject::deleteLater);
-    // gets error: qt.core.qobject.connect: QObject::connect(QAbstractSocket, Unknown): invalid nullptr parameter
+    sendSocket = tcpServer->nextPendingConnection();
+    connect(sendSocket, &QAbstractSocket::disconnected, sendSocket, &QObject::deleteLater);
 
-
-    tcpSocket->write(block);
-    tcpSocket->flush();
-    tcpSocket->disconnectFromHost();
+    sendSocket->write(block);
+    sendSocket->flush();
+    sendSocket->disconnectFromHost();
 }
 
 

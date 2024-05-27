@@ -28,6 +28,7 @@ private slots:
     void on_sendFileButton_clicked();
 
     void newConnection();
+    void stateUpdate();
 
 private:
     Ui::server *ui;
