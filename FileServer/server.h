@@ -27,7 +27,6 @@ private slots:
     void on_QuitButton_clicked();
     void on_sendFileButton_clicked();
 
-    void newConnection();
     void stateUpdate();
 
 private:

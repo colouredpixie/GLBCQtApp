@@ -11,16 +11,14 @@ server::server(QWidget *parent)
     ui->setupUi(this);
 
     connect(tcpServer, &QTcpServer::newConnection, this, &server::sendFileList);
-    connect(tcpSocket, &QIODevice::readyRead, this, &server::newConnection);
+    connect(tcpSocket, &QIODevice::readyRead, this, &server::readFileRequest);
     connect(tcpSocket, &QAbstractSocket::stateChanged, this, &server::stateUpdate);
 
-    if(!tcpServer->listen(QHostAddress::Any, portNumber)) {
+    if(!tcpServer->listen(QHostAddress::LocalHost, portNumber)) {
         ui->textBrowser->QTextBrowser::setText("Couldn't start server. \nPlease, check if network port is available");
     } else {
         ui->textBrowser->QTextBrowser::setText("Started server. \nWaiting on a connection from the client");
     }
-
-
 }
 
 server::~server()
@@ -30,6 +28,9 @@ server::~server()
 
 void server::sendFileList()
 {
+    tcpSocket = tcpServer->nextPendingConnection();
+    connect(tcpSocket, &QAbstractSocket::disconnected, tcpSocket, &QObject::deleteLater);
+
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_6_6);
@@ -43,19 +44,18 @@ void server::sendFileList()
         out << file << ":";
     }
 
-    tcpSocket = tcpServer->nextPendingConnection();
-    connect(tcpSocket, &QAbstractSocket::disconnected, tcpSocket, &QObject::deleteLater);
-
     tcpSocket->write(block);
     tcpSocket->flush();
     tcpSocket->disconnectFromHost();
+
+    ui->textBrowser->QTextBrowser::setText("File list sent. \nWaiting on a filename");
+
 }
 
-void server::readFileRequest() {
-    QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
-    // filePortNumber?
+void server::readFileRequest() {                                        // The connection doesn't work for now, check later
+    tcpSocket = reinterpret_cast<QTcpSocket*>(sender());
     QByteArray dataBuffer;
-    QDataStream socketStream(socket);
+    QDataStream socketStream(tcpSocket);
     socketStream.setVersion(QDataStream::Qt_6_6);
 
     socketStream.startTransaction();
@@ -65,45 +65,48 @@ void server::readFileRequest() {
         return;
     }
 
-    sendFile(socket, dataBuffer);
+    sendFile(tcpSocket, dataBuffer);
+    // sendFile(tcpSocket, "/home/pixie/Public/repos/FileSever/test.txt");
 }
 
 void server::sendFile(QTcpSocket* socket, QString filename)
 {
-    /*
+    // filePortNumber?
+
     QFile filedata(filename);
+    socket = tcpServer->nextPendingConnection();
 
-    if(socket && socket->isOpen()) {
-
+    if(socket && socket->isOpen())
+    {
         if (filedata.open(QIODevice::ReadOnly))
         {
             QFileInfo fileinfo(filedata);
-            QString fileNameWithExt(fileinfo.fileName());
+            QString fileName(fileinfo.fileName());
 
             QDataStream socketStream(socket);
-            socketStream.setVersion(QDataStream::Qt_5_15); // set my Qt version
+            socketStream.setVersion(QDataStream::Qt_6_6);
 
             QByteArray header;
-            header.prepend("filename:") + fileNameWithExt.toUtf8() + ",filesize:" + QString::number(filedata.size()); //toUtf8 ?
+            header.prepend((("filename:") + fileName + ",filesize:" + QString::number(filedata.size()) + ",").toUtf8());
             header.resize(128);
 
-            QByteArray byteFileData;
+            QByteArray byteFileData = filedata.readAll();
             byteFileData.prepend(header);
 
             socketStream << byteFileData;
+            filedata.close();
+
+            socket->disconnectFromHost();
+
+            ui->textBrowser->QTextBrowser::setText("File list sent. \nWaiting on a filename");
         }
         else {
-            qDebug() << "File not open";
+            ui->textBrowser->QTextBrowser::setText("File not open");
         }
     }
     else {
         ui->textBrowser->QTextBrowser::setText("File socket not open");
-    }*/
-}
-
-void server::newConnection()
-{
-    ui->textBrowser->QTextBrowser::setText("Received a datagramme from client");
+    }
 }
 
 void server::stateUpdate(){
@@ -140,6 +143,7 @@ void server::stateUpdate(){
     }
     ui->textBrowser->QTextBrowser::append(temp);
 }
+
 void server::close() {
     QTcpSocket * socket = reinterpret_cast<QTcpSocket*>(sender());
     socket->deleteLater();
@@ -148,8 +152,6 @@ void server::close() {
 void server::on_sendFileButton_clicked()
 {
     ui->textBrowser->QTextBrowser::setText("Sending file to client");
-    tcpSocket->connectToHost(QHostAddress::LocalHost, portNumber);
-
 }
 
 void server::on_QuitButton_clicked()

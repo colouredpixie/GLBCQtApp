@@ -29,6 +29,8 @@ private slots:
     // get data stream from server on connection
     void readSocket();
 
+    void stateUpdate();
+
 private:
     Ui::client *ui;
 
@@ -37,8 +39,8 @@ private:
     QString ipAddress;
     int portNumber = 7500;
 
-    QDataStream in;
     QStringList files;
+    QString saveFilePath;
 
     // get files list from server extended functionality
     QByteArray receiveFileList();
