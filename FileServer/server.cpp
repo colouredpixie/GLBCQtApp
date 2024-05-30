@@ -141,7 +141,7 @@ void server::stateUpdate(){
         break;
         }
     }
-    ui->textBrowser->QTextBrowser::append(temp);
+    ui->statusbar->showMessage(temp);
 }
 
 void server::close() {
