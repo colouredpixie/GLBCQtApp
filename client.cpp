@@ -5,8 +5,8 @@
 
 client::client(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::client)
-    , tcpServer(new QTcpServer(this))
+    , ui(new Ui::client) // unique_ptr
+    , tcpServer(new QTcpServer(this)) // unique_ptr
 {
     ui->setupUi(this);
 
@@ -48,7 +48,7 @@ QByteArray client::receiveFileList() {
     size = byteSize.toInt();
 
     dataBuffer = tcpSocket->readAll();
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; i++) { // deserialize()
         files.append(dataBuffer.split(':')[i+1]);
     }
 

@@ -2,7 +2,7 @@
 #define CLIENT_H
 
 #include <QMainWindow>
-#include "./QtNetwork/QtNetwork"
+#include "./QtNetwork/QtNetwork" // <QtNetwork>
 #include "./QtNetwork/QTcpServer"
 
 QT_BEGIN_NAMESPACE

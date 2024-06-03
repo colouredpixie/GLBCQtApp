@@ -137,7 +137,7 @@ void server::stateUpdate(){
         break;
         }
         default: {
-        temp = 	"For internal use only.";
+        temp = 	"For internal use only."; // Undedined error: tcpSocket->state()
         break;
         }
     }
